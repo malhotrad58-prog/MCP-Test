@@ -1,0 +1,18 @@
+{
+  "servers": {
+    "jira": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@atlassian/mcp-server-atlassian"
+      ],
+      "env": {
+        "JIRA_URL": "https://malhotrad58.atlassian.net/",
+        "JIRA_EMAIL": "malhotrad58@gmail.com",
+        "JIRA_API_TOKEN": "ATATT3xFfGF0d9bRMOkaM1xTOHLF0uCDah8Xlv9Fgx_EINrtkx8jOjAjWGzY8e1KxzoezTyluwD2rtSB4LaNSWR5mHxKIWICMaYhoATwG-V7EtHIVkzr_AgkwcpfQRrNaG01XqfAcUGU0G2zIru-YgloirTxMxNXKk2a0rKvrh90EK8CsffcSbM=25794BE3",
+        "JIRA_PROJECTS": "Test-Workflow"
+      }
+    }
+  }
+}
