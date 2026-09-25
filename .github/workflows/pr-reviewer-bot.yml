@@ -1,0 +1,67 @@
+name: PR Reviewer Bot
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, labeled, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  basic-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: Check changed files
+        id: files
+        uses: tj-actions/changed-files@v45
+        with:
+          separator: ","
+
+      - name: Post a basic reviewer summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const changed = `${{ steps.files.outputs.all_changed_files }}`.split(',').filter(Boolean);
+            const files = changed.length ? changed : ['No file list available'];
+
+            const javaFiles = files.filter(f => f.endsWith('.java'));
+            const testFiles = files.filter(f => /test|spec/i.test(f));
+            const configFiles = files.filter(f => /pom\.xml|build\.gradle|package\.json|yml|yaml|properties/i.test(f));
+
+            const findings = [];
+
+            if (javaFiles.length === 0) {
+              findings.push('No Java source files were changed in this PR.');
+            }
+
+            if (testFiles.length === 0 && javaFiles.length > 0) {
+              findings.push('No test files were detected in the change set. Please confirm coverage for the behavior being updated.');
+            }
+
+            if (configFiles.length > 0) {
+              findings.push('Build or config files were changed; verify they did not break the project setup or dependency resolution.');
+            }
+
+            const summary = [
+              '## Basic PR Review',
+              '',
+              `Files changed: ${files.join(', ')}`,
+              '',
+              '### Quick checks',
+              ...findings.map(f => `- ${f}`),
+              '',
+              '### Recommendation',
+              '- Confirm the code still compiles and the relevant test cases pass before merge.',
+              '- Keep the PR scoped to the intended change and avoid unrelated refactors.'
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: summary
+            });

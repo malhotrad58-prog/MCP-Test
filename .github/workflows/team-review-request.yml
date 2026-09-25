@@ -1,0 +1,34 @@
+name: Team Reviewer Flow
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, labeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  request-team-review:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+
+    env:
+      ORG_NAME: Automation-Test-Organisation
+      TEAM_SLUG: Qa-engineers
+      REVIEW_LABEL: team-review
+
+    steps:
+      - name: Request review from team
+        if: contains(toJson(github.event.pull_request.labels), format('"name":"{0}"', env.REVIEW_LABEL)) || github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'ready_for_review'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Requesting team review for PR #${{ github.event.pull_request.number }}"
+          gh pr edit ${{ github.event.pull_request.number }} --add-reviewer "${ORG_NAME}/${TEAM_SLUG}" || echo "Team reviewer could not be added; verify the org/team slug and repository permissions."
+
+      - name: Notify if team reviewer is not configured
+        if: env.ORG_NAME == 'your-org' || env.TEAM_SLUG == 'your-team'
+        run: |
+          echo "Update ORG_NAME and TEAM_SLUG in .github/workflows/team-review-request.yml before using this workflow."
+          echo "GitHub team reviewer assignment requires a valid organization and team slug."
