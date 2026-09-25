@@ -15,7 +15,7 @@ jobs:
 
     env:
       ORG_NAME: Automation-Test-Organisation
-      TEAM_SLUG: Qa-engineers
+      TEAM_SLUG: Qa-Engineers
       REVIEW_LABEL: team-review
 
     steps:
